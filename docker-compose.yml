@@ -1,0 +1,48 @@
+services:
+  #pgadmin:
+  #  image: dpage/pgadmin4
+  #  environment:
+  #    PGADMIN_DEFAULT_EMAIL: admin@admin.com
+  #    PGADMIN_DEFAULT_PASSWORD: admin
+  #  ports:
+  #    - "8080:80"
+  #  depends_on:
+  #    - db
+  #  networks:
+  #    - app_network
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: taskdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    networks:
+      - app_network
+  backend:
+    build: ./server
+    environment:
+      # Указываем строку подключения для PostgreSQL с использованием имени контейнера db
+      DATABASE_URL: postgresql://user:password@db/taskdb
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - app_network
+  frontend:
+    build: ./client
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
